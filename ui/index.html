@@ -9,16 +9,28 @@
 <body>
   <h1>Video.js Example Embed</h1>
 
-  <video-js id="my_video_1" class="vjs-default-skin" controls preload="auto" width="1080" height="720">
+  <!-- <video-js id="my_video_1" class="vjs-default-skin" controls preload="auto" width="1080" height="720">
     <source src="http://localhost:3030/playlist/" Type="application/x-mpegURL">
-    <!-- <source src="https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8" type="application/x-mpegURL"> -->
-  </video-js>
+    <source src="https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8" type="application/x-mpegURL">
+  </video-js> -->
 
   <script src="https://unpkg.com/video.js/dist/video.js"></script>
   <script src="https://unpkg.com/@videojs/http-streaming/dist/videojs-http-streaming.js"></script>
 
   <script>
     var player = videojs('my_video_1');
+  </script>
+
+  <video id=example-video width=960 height=540 class="video-js vjs-default-skin" controls>
+    <source src="http://localhost:3030/playlist/"
+      type="application/x-mpegURL">
+    <source src="https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8" type="application/x-mpegURL">
+  </video>
+  <script src="video.js"></script>
+  <script src="videojs.hls.min.js"></script>
+  <script>
+    var player = videojs('example-video');
+    player.play();
   </script>
 
 </body>
