@@ -57,13 +57,13 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
                 if *default == 1 as isize {
                     playlist.push_str(&format!("AUTOSELECT=YES,DEFAULT=YES\n"));
                 } else {
-                    let uri = &format!("audio_{:02}/index.m3u8", s.index);
+                    let uri = &format!("/audio/{:02}/{}", media_file, pos);
                     playlist.push_str(&format!(r#"AUTOSELECT=NO,DEFAULT=NO,URI="{}""#, uri));
                     playlist.push_str("\n");
                 }
             }
             None => {
-                let uri = &format!("audio_{:02}/index.m3u8", s.index);
+                let uri = &format!("/audio/{:02}/{}", media_file, pos);
                 playlist.push_str(&format!(r#"AUTOSELECT=NO,DEFAULT=NO,URI="{}""#, uri));
                 playlist.push_str("\n");
             }
@@ -124,6 +124,58 @@ fn get_res_playlist(
             "/video/{}/{}/{:04}.ts\n",
             media_file.trim(),
             resolution,
+            segmentIndex
+        ));
+        segmentIndex += 1;
+        leftover = leftover - HLS_SEGMENT_DURATION;
+    }
+
+    playlist.push_str("#EXT-X-ENDLIST\n");
+
+    Ok(Response::builder()
+        .header(
+            http::header::CONTENT_TYPE,
+            http::HeaderValue::from_static(M3U8_HEADER_VALUE),
+        )
+        .body(playlist))
+}
+
+
+pub async fn audio_playlist_handler(media_file: String, index: usize) -> Result<impl warp::Reply, warp::Rejection> {
+    get_audio_playlist(&media_file, index)
+}
+
+fn get_audio_playlist(
+    media_file: &str,
+    index: usize,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut playlist = String::new();
+    playlist.push_str("#EXTM3U\n");
+    playlist.push_str("#EXT-X-VERSION:3\n");
+    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{}\n", HLS_SEGMENT_DURATION));
+    playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
+    playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
+    playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
+
+    let leftover = media_info::get_duration(media_file);
+    if leftover.is_err() {
+        return Err(warp::reject::not_found());
+    }
+
+    let mut leftover = leftover.unwrap();
+
+    let mut segmentIndex = 0;
+
+    while leftover > 0 as f32 {
+        if leftover > HLS_SEGMENT_DURATION {
+            playlist.push_str(&format!("#EXTINF:{:.6},\n", HLS_SEGMENT_DURATION));
+        } else {
+            playlist.push_str(&format!("#EXTINF:{:.6},\n", leftover));
+        }
+        playlist.push_str(&format!(
+            "/audio/{:02}/{}/{:04}.aac\n",
+            media_file,
+            index,
             segmentIndex
         ));
         segmentIndex += 1;

@@ -25,7 +25,7 @@ async fn main() {
         Err(e) => println!("Error from media_info::get_subtitle_streams : {}", e),
     }
 
-    let index = warp::path::end().and(warp::fs::file("./ui2/index3.html"));
+    let index = warp::path::end().and(warp::fs::file("./ui/index.html"));
     let js = warp::path("js").and(warp::fs::dir("./ui2/js"));
     let main_playlist = warp::path!("playlist" / String)
         .and(warp::path::end())
@@ -33,6 +33,9 @@ async fn main() {
     let sub_playlist = warp::path!("playlist" / String / usize)
         .and(warp::path::end())
         .and_then(hls::playlist::res_playlist_handler);
+    let audio_playlist = warp::path!("audio" / String / usize)
+        .and(warp::path::end())
+        .and_then(hls::playlist::audio_playlist_handler);
     let video = warp::path!("video" / String / u16 / String)
         .and(warp::path::end())
         .and_then(hls::segment::video_segment_handler);
@@ -40,7 +43,7 @@ async fn main() {
         .and(warp::path::end())
         .and_then(hls::segment::audio_segment_handler);
 
-    warp::serve(js.or(index).or(main_playlist).or(sub_playlist).or(video).or(audio))
+    warp::serve(js.or(index).or(main_playlist).or(audio_playlist).or(sub_playlist).or(video).or(audio))
         .run(([127, 0, 0, 1], 3030))
         .await;
 }
