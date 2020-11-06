@@ -7,7 +7,9 @@ const HLS_SEGMENT_DURATION: f32 = 6.0;
 const M3U8_HEADER_VALUE: &str = "application/x-mpegURL";
 const PRESET_RESOLUTIONS: &'static [usize] = &[1080, 720, 480];
 
-// pub async fn master_playlist_handler() -> Result<impl warp::Reply, warp::Rejection> {}
+pub async fn master_playlist_handler(media_file: String) -> Result<impl warp::Reply, warp::Rejection> {
+    get_master_playlist(&media_file)
+}
 
 pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::Rejection> {
     let media_duration = media_info::get_duration(media_file);
@@ -67,13 +69,28 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
             }
         }
     }
+    playlist.push_str("\n");
 
-    println!("{}", playlist);
-    Ok(warp::reply())
+    // TODO: Take into account the highest resolution of the media_file
+    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360\n");
+    playlist.push_str(&format!("/playlist/{}/360/\n", media_file));
+
+    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=842x480\n");
+    playlist.push_str(&format!("/playlist/{}/480/\n", media_file));
+
+    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720\n");
+    playlist.push_str(&format!("/playlist/{}/720/\n", media_file));
+
+    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080\n");
+    playlist.push_str(&format!("/playlist/{}/1080/\n", media_file));
+
+    Ok(Response::builder()
+    .header(http::header::CONTENT_TYPE, http::HeaderValue::from_static(M3U8_HEADER_VALUE))
+    .body(playlist))
 }
 
-pub async fn res_playlist_handler(media_file: String) -> Result<impl warp::Reply, warp::Rejection> {
-    get_res_playlist(&media_file, 720)
+pub async fn res_playlist_handler(media_file: String, resolution: usize) -> Result<impl warp::Reply, warp::Rejection> {
+    get_res_playlist(&media_file, resolution)
 }
 
 fn get_res_playlist(
