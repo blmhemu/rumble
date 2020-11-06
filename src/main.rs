@@ -33,12 +33,6 @@ async fn main() {
         .and(warp::path::end())
         .and_then(hls::playlist::res_playlist_handler);
 
-    // let get_play = warp::get()
-    //     .and(warp::path("playlist"))
-    //     .and(warp::path::param())
-    //     .and(warp::path::end())
-    //     .and_then(get_play_fn);
-
     warp::serve(index.or(segment).or(get_res_playlist))
         .run(([127, 0, 0, 1], 3030))
         .await;
