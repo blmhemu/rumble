@@ -1,8 +1,8 @@
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::error::Error;
 use std::process::Command;
 use std::str;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 //TODO: Take ffmpeg and ffprobe paths rather than assuming they are in PATH.
 
@@ -23,17 +23,17 @@ pub struct StreamArray {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Stream {
     pub index: usize,
-    pub tags: HashMap<String, String>
+    pub disposition: HashMap<String, isize>,
+    pub tags: HashMap<String, String>,
 }
 
 pub enum StreamType {
     Video,
     Audio,
-    Subtitle
+    Subtitle,
 }
 
 pub fn get_stream_info(media_file: &str, stream_type: StreamType) -> BoxedResult<StreamArray> {
-
     let stream_type = match stream_type {
         StreamType::Video => "v",
         StreamType::Audio => "a",
@@ -61,7 +61,6 @@ pub fn get_stream_info(media_file: &str, stream_type: StreamType) -> BoxedResult
     let streams: StreamArray = serde_json::from_str(json)?;
 
     Ok(streams)
-
 }
 
 pub fn get_duration(media_file: &str) -> BoxedResult<f32> {

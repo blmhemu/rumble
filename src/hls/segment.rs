@@ -3,7 +3,7 @@ use std::process::Command;
 use warp::http::header;
 use warp::http::Response;
 
-const HLS_SEGMENT_DURATION: usize = 6;
+const HLS_SEGMENT_DURATION: f32 = 6.0;
 const MPEGTS_HEADER_VALUE: &str = "video/MP2T";
 
 pub async fn segment_handler(
@@ -32,7 +32,7 @@ fn get_segment(
     resolution: u16,
     segment_number: usize,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let start_time = segment_number * HLS_SEGMENT_DURATION;
+    let start_time = HLS_SEGMENT_DURATION * segment_number as f32;
 
     //TODO: Subtitles Support
     //TODO: Audio Selection
@@ -43,13 +43,13 @@ fn get_segment(
         "45",
         // Seek till given start time
         "-ss",
-        &format!("{:.4}", start_time as f32),
+        &format!("{:.4}", start_time),
         // Input
         "-i",
         video_file,
         // Segment time
         "-t",
-        &format!("{:.4}", HLS_SEGMENT_DURATION as f32),
+        &format!("{:.4}", HLS_SEGMENT_DURATION),
         // Video
         "-vf",
         &format!("scale=-2:{}", resolution),
@@ -72,7 +72,7 @@ fn get_segment(
         "-f",
         "ssegment",
         "-segment_time",
-        &format!("{:.2}", HLS_SEGMENT_DURATION as f32),
+        &format!("{:.2}", HLS_SEGMENT_DURATION),
         "-initial_offset",
         &format!("{:.2}", start_time as f32),
         "pipe:%03d.ts",
