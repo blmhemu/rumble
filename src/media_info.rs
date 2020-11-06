@@ -1,11 +1,13 @@
 use std::error::Error;
 use std::process::Command;
 use std::str;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-//TODO: Take ffmpeg and ffprobe paths rather than hardcoding.
+//TODO: Take ffmpeg and ffprobe paths rather than assuming they are in PATH.
 
 //TODO: Put in another file ??
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
+type BoxedResult<T> = std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug)]
 pub struct Resolution {
@@ -13,11 +15,60 @@ pub struct Resolution {
     pub height: usize,
 }
 
-pub fn get_duration(video_file_name: &str) -> Result<f32> {
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StreamArray {
+    pub streams: Vec<Stream>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Stream {
+    pub index: usize,
+    pub tags: HashMap<String, String>
+}
+
+pub enum StreamType {
+    Video,
+    Audio,
+    Subtitle
+}
+
+pub fn get_stream_info(media_file: &str, stream_type: StreamType) -> BoxedResult<StreamArray> {
+
+    let stream_type = match stream_type {
+        StreamType::Video => "v",
+        StreamType::Audio => "a",
+        StreamType::Subtitle => "s",
+    };
+
+    let ffprobe_args = &[
+        "-i",
+        media_file,
+        "-v",
+        "quiet",
+        "-select_streams",
+        stream_type,
+        "-show_entries",
+        // TODO: Get only required data : "stream=index:stream_tags=language",
+        "stream",
+        "-of",
+        "json",
+    ];
+
+    let output = Command::new("ffprobe").args(ffprobe_args).output()?;
+
+    let json = str::from_utf8(&output.stdout)?;
+
+    let streams: StreamArray = serde_json::from_str(json)?;
+
+    Ok(streams)
+
+}
+
+pub fn get_duration(media_file: &str) -> BoxedResult<f32> {
     let ffprobe_args = &[
         // Input file
         "-i",
-        video_file_name,
+        media_file,
         // Do not print unwanted stuff
         "-v",
         "quiet",
@@ -36,11 +87,11 @@ pub fn get_duration(video_file_name: &str) -> Result<f32> {
     Ok(duration)
 }
 
-pub fn get_resolution(video_file_name: &str) -> Result<Resolution> {
+pub fn get_resolution(media_file: &str) -> BoxedResult<Resolution> {
     let ffprobe_args = &[
         // Input file
         "-i",
-        video_file_name,
+        media_file,
         // Do not print unwanted stuff
         "-v",
         "quiet",
@@ -54,7 +105,7 @@ pub fn get_resolution(video_file_name: &str) -> Result<Resolution> {
 
     let output = Command::new("ffprobe").args(ffprobe_args).output()?;
 
-    let mut lines = str::from_utf8(&output.stdout)?.trim().lines();
+    let mut lines = std::str::from_utf8(&output.stdout)?.trim().lines();
 
     // Currently NoneError is experimental in rust.
     // Once supported we can do the following.

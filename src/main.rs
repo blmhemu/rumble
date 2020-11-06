@@ -5,7 +5,7 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() {
-    let location = "bbl.mp4";
+    let location = "bb.mkv";
     let duration = media_info::get_duration(location);
     match duration {
         Ok(x) => println!("Duration is: {} seconds", x),
@@ -16,6 +16,12 @@ async fn main() {
     match resolution {
         Ok(x) => println!("Resolution is: {:?}", x),
         Err(e) => println!("Error from media_info::get_resolution : {}", e),
+    }
+
+    let streams = media_info::get_stream_info(location, media_info::StreamType::Subtitle);
+    match streams {
+        Ok(x) => println!("Streams : {:?}", x),
+        Err(e) => println!("Error from media_info::get_subtitle_streams : {}", e),
     }
 
     let index = warp::path::end()

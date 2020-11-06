@@ -4,7 +4,7 @@ use warp::http::header;
 use warp::http::Response;
 
 const HLS_SEGMENT_DURATION: usize = 6;
-const MPEGTS_HEADER_VALUE: &str = "video/mp2t";
+const MPEGTS_HEADER_VALUE: &str = "video/MP2T";
 
 pub async fn segment_handler(
     video_file: String,
