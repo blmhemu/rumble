@@ -104,7 +104,7 @@ fn get_res_playlist(
             playlist.push_str(&format!("#EXTINF:{:.6},\n", leftover));
         }
         playlist.push_str(&format!(
-            "/play/{}/{}/{:04}.ts\n",
+            "/video/{}/{}/{:04}.ts\n",
             media_file.trim(),
             resolution,
             segmentIndex

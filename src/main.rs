@@ -26,14 +26,17 @@ async fn main() {
     }
 
     let index = warp::path::end().and(warp::fs::file("ui/index.html"));
-    let segment = warp::path!("play" / String / u16 / String)
-        .and(warp::path::end())
-        .and_then(hls::segment::segment_handler);
-    let get_res_playlist = warp::path!("playlist" / String)
+    let playlist = warp::path!("playlist" / String)
         .and(warp::path::end())
         .and_then(hls::playlist::res_playlist_handler);
+    let video = warp::path!("video" / String / u16 / String)
+        .and(warp::path::end())
+        .and_then(hls::segment::video_segment_handler);
+    let audio = warp::path!("audio" / String / u8 / String)
+        .and(warp::path::end())
+        .and_then(hls::segment::audio_segment_handler);
 
-    warp::serve(index.or(segment).or(get_res_playlist))
+    warp::serve(index.or(playlist).or(video).or(audio))
         .run(([127, 0, 0, 1], 3030))
         .await;
 }
