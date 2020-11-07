@@ -37,9 +37,9 @@ fn get_audio_segment(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let start_time = HLS_SEGMENT_DURATION * segment_number as f32;
 
-    //TODO: Subtitles Support
-    //TODO: Audio Selection
-    //TODO: Video Bitrate based on resolution
+    // TODO: Subtitles Support
+    // TODO: Audio Selection
+    // TODO: Audio Bitrate based on resolution
     let ffmpeg_args = &[
         // Exit if taking longer than 45 seconds
         "-timelimit",
@@ -72,7 +72,7 @@ fn get_audio_segment(
         &format!("{:.4}", HLS_SEGMENT_DURATION),
         "-initial_offset",
         &format!("{:.4}", start_time),
-        "pipe:%04d.aac",
+        "pipe:%04d.ts",
     ];
 
     let output = Command::new("ffmpeg").args(ffmpeg_args).output();

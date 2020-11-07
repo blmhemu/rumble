@@ -40,6 +40,8 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
     }
 
     let a = a.unwrap();
+
+    //TODO: Improve this text. It works but is a mess at the moment.
     for (pos, s) in a.streams.iter().enumerate() {
         playlist.push_str(r#"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio","#);
 
@@ -47,7 +49,7 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
             playlist.push_str(&format!(r#"LANGUAGE="{}","#, lang));
         }
         match s.tags.get("title") {
-            Some(title) => playlist.push_str(&format!(r#"NAME="{}","#, title)),
+            Some(title) => playlist.push_str(&format!(r#"NAME="{}{}","#, title, pos+1)),
             None => playlist.push_str(&format!(r#"NAME="Track{}","#, pos + 1)),
         }
 
