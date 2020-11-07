@@ -103,7 +103,7 @@ fn get_res_playlist(
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
     playlist.push_str("#EXT-X-VERSION:4\n");
-    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{}\n", HLS_SEGMENT_DURATION));
+    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.6}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
     // playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
@@ -155,7 +155,7 @@ fn get_audio_playlist(
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
     playlist.push_str("#EXT-X-VERSION:4\n");
-    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{}\n", HLS_SEGMENT_DURATION));
+    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.6}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
     playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
