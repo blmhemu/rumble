@@ -30,6 +30,7 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
 
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
+    playlist.push_str("#EXT-X-VERSION:4\n");
     playlist.push_str("\n");
 
     // populate_audio tracks
@@ -40,16 +41,14 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
 
     let a = a.unwrap();
     for (pos, s) in a.streams.iter().enumerate() {
-        match s.tags.get("language") {
-            Some(lang) => playlist.push_str(&format!(
-                r#"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio",LANGUAGE="{}","#,
-                lang
-            )),
-            None => playlist.push_str(r#"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio","#),
+        playlist.push_str(r#"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="bipbop_audio","#);
+
+        if let Some(lang) = s.tags.get("language") {
+            playlist.push_str(&format!(r#"LANGUAGE="{}","#, lang));
         }
         match s.tags.get("title") {
             Some(title) => playlist.push_str(&format!(r#"NAME="{}","#, title)),
-            None => playlist.push_str(&format!(r#"NAME="Track-{}","#, pos + 1)),
+            None => playlist.push_str(&format!(r#"NAME="Track{}","#, pos + 1)),
         }
 
         match s.disposition.get("default") {
@@ -57,13 +56,13 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
                 if *default == 1 as isize {
                     playlist.push_str(&format!("AUTOSELECT=YES,DEFAULT=YES\n"));
                 } else {
-                    let uri = &format!("/audio/{:02}/{}", media_file, pos);
+                    let uri = &format!("/audio/{}/{:02}/", media_file, pos);
                     playlist.push_str(&format!(r#"AUTOSELECT=NO,DEFAULT=NO,URI="{}""#, uri));
                     playlist.push_str("\n");
                 }
             }
             None => {
-                let uri = &format!("/audio/{:02}/{}", media_file, pos);
+                let uri = &format!("/audio/{}/{:02}/", media_file, pos);
                 playlist.push_str(&format!(r#"AUTOSELECT=NO,DEFAULT=NO,URI="{}""#, uri));
                 playlist.push_str("\n");
             }
@@ -72,16 +71,20 @@ pub fn get_master_playlist(media_file: &str) -> Result<impl warp::Reply, warp::R
     playlist.push_str("\n");
 
     // TODO: Take into account the highest resolution of the media_file
-    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360\n");
+    playlist.push_str(r#"#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360,AUDIO="bipbop_audio""#);
+    playlist.push_str("\n");
     playlist.push_str(&format!("/playlist/{}/360/\n", media_file));
 
-    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=842x480\n");
+    playlist.push_str(r#"#EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=842x480,AUDIO="bipbop_audio""#);
+    playlist.push_str("\n");
     playlist.push_str(&format!("/playlist/{}/480/\n", media_file));
 
-    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720\n");
+    playlist.push_str(r#"#EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720,AUDIO="bipbop_audio""#);
+    playlist.push_str("\n");
     playlist.push_str(&format!("/playlist/{}/720/\n", media_file));
 
-    playlist.push_str("#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080\n");
+    playlist.push_str(r#"#EXT-X-STREAM-INF:BANDWIDTH=5000000,RESOLUTION=1920x1080,AUDIO="bipbop_audio""#);
+    playlist.push_str("\n");
     playlist.push_str(&format!("/playlist/{}/1080/\n", media_file));
 
     Ok(Response::builder()
@@ -99,11 +102,11 @@ fn get_res_playlist(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
-    playlist.push_str("#EXT-X-VERSION:3\n");
+    playlist.push_str("#EXT-X-VERSION:4\n");
     playlist.push_str(&format!("#EXT-X-TARGETDURATION:{}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
-    playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
+    // playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
 
     let leftover = media_info::get_duration(media_file);
     if leftover.is_err() {
@@ -141,17 +144,17 @@ fn get_res_playlist(
 }
 
 
-pub async fn audio_playlist_handler(media_file: String, index: usize) -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn audio_playlist_handler(media_file: String, index: u8) -> Result<impl warp::Reply, warp::Rejection> {
     get_audio_playlist(&media_file, index)
 }
 
 fn get_audio_playlist(
     media_file: &str,
-    index: usize,
+    index: u8,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
-    playlist.push_str("#EXT-X-VERSION:3\n");
+    playlist.push_str("#EXT-X-VERSION:4\n");
     playlist.push_str(&format!("#EXT-X-TARGETDURATION:{}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
@@ -173,7 +176,7 @@ fn get_audio_playlist(
             playlist.push_str(&format!("#EXTINF:{:.6},\n", leftover));
         }
         playlist.push_str(&format!(
-            "/audio/{:02}/{}/{:04}.aac\n",
+            "/audio/{}/{:02}/{:04}.aac\n",
             media_file,
             index,
             segmentIndex

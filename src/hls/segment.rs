@@ -5,6 +5,7 @@ use warp::http::Response;
 
 const HLS_SEGMENT_DURATION: f32 = 6.0;
 const MPEGTS_HEADER_VALUE: &str = "video/MP2T";
+const AUDIO_AAC_HEADER_VALUE: &str = "audio/aac";
 
 pub async fn audio_segment_handler(
     media_file: String,
@@ -26,13 +27,13 @@ pub async fn audio_segment_handler(
         .unwrap();
     let segment_number: usize = caps.get(0).map(|m| m.as_str()).unwrap().parse().unwrap();
 
-    get_audio_segment(&media_file, segment_number, stream_index)
+    get_audio_segment(&media_file, stream_index, segment_number)
 }
 
 fn get_audio_segment(
     media_file: &str,
-    segment_number: usize,
     stream_index: u8,
+    segment_number: usize,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let start_time = HLS_SEGMENT_DURATION * segment_number as f32;
 
@@ -81,7 +82,7 @@ fn get_audio_segment(
         Ok(out) => Ok(Response::builder()
             .header(
                 header::CONTENT_TYPE,
-                header::HeaderValue::from_static(MPEGTS_HEADER_VALUE),
+                header::HeaderValue::from_static(AUDIO_AAC_HEADER_VALUE),
             )
             .body(out.stdout)),
         Err(e) => {

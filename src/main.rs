@@ -26,14 +26,14 @@ async fn main() {
     }
 
     let index = warp::path::end().and(warp::fs::file("./ui/index.html"));
-    let js = warp::path("js").and(warp::fs::dir("./ui2/js"));
+    let js = warp::path("js").and(warp::fs::dir("./ui3/js"));
     let main_playlist = warp::path!("playlist" / String)
         .and(warp::path::end())
         .and_then(hls::playlist::master_playlist_handler);
     let sub_playlist = warp::path!("playlist" / String / usize)
         .and(warp::path::end())
         .and_then(hls::playlist::res_playlist_handler);
-    let audio_playlist = warp::path!("audio" / String / usize)
+    let audio_playlist = warp::path!("audio" / String / u8)
         .and(warp::path::end())
         .and_then(hls::playlist::audio_playlist_handler);
     let video = warp::path!("video" / String / u16 / String)
