@@ -7,7 +7,7 @@ use warp::http::Response;
 const HLS_SEGMENT_DURATION: f32 = 6.0;
 const MPEGTS_HEADER_VALUE: &str = "video/MP2T";
 const AUDIO_AAC_HEADER_VALUE: &str = "audio/aac";
-const SUBTITLE_VTT_HEADER_VALUE: &str = "audio/aac";
+const SUBTITLE_VTT_HEADER_VALUE: &str = "text/vtt";
 
 // Why mux delay in ffmpeg args ?
 // https://stackoverflow.com/questions/61835223/ffmpeg-burnt-in-subtitles-out-of-sync-when-converting-to-hls
@@ -43,6 +43,8 @@ fn get_subtitle_segment(
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let start_time = HLS_SEGMENT_DURATION * segment_number as f32;
 
+    // Subs take less than an MB so there is no practical need to segment them.
+    // We just extract one long webvtt and in m3u8 (playlist) we just list one single webvtt.
     let ffmpeg_args = &[
         // Exit if taking longer than 45 seconds
         "-timelimit",
@@ -61,43 +63,6 @@ fn get_subtitle_segment(
         "webvtt",
         "pipe:sub.vtt",
     ];
-    // TODO: Subtitles Support
-    // TODO: Audio Selection
-    // TODO: Audio Bitrate based on resolution
-    // let ffmpeg_args = &[
-    //     // Exit if taking longer than 45 seconds
-    //     "-timelimit",
-    //     "45",
-    //     // Seek till given start time
-    //     "-ss",
-    //     &format!("{:.4}", start_time),
-    //     // Input
-    //     "-i",
-    //     media_file,
-    //     // Segment time
-    //     "-t",
-    //     &format!("{:.4}", HLS_SEGMENT_DURATION),
-    //     // Select stream
-    //     "-map",
-    //     &format!("0:s:{}", stream_index),
-    //     // Subtitle
-    //     "-c:s",
-    //     "webvtt",
-    //     // Force key_frames for exact split
-    //     "-force_key_frames",
-    //     &format!("expr:gte(t,n_forced*{:.4})", HLS_SEGMENT_DURATION),
-    //     "-f",
-    //     "ssegment",
-    //     "-segment_time",
-    //     &format!("{:.4}", HLS_SEGMENT_DURATION),
-    //     "-initial_offset",
-    //     &format!("{:.4}", start_time),
-    //     // I know the extension should be ".aac".
-    //     // But ".aac" does not work.
-    //     // ffmpeg warns "[mpegts @ 0x7fb08a80d400] frame size not set" when using ".ts" extension
-    //     // But it is not fatal and ".ts" just works.
-    //     "pipe:%04d.vtt"
-    // ];
 
     let output = Command::new("ffmpeg").args(ffmpeg_args).output();
 
@@ -106,7 +71,7 @@ fn get_subtitle_segment(
         Ok(out) => Ok(Response::builder()
             .header(
                 header::CONTENT_TYPE,
-                header::HeaderValue::from_static(AUDIO_AAC_HEADER_VALUE),
+                header::HeaderValue::from_static(SUBTITLE_VTT_HEADER_VALUE),
             )
             .body(out.stdout)),
         Err(e) => {
