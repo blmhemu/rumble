@@ -36,6 +36,7 @@ pub async fn subtitle_segment_handler(
     get_subtitle_segment(&media_file, stream_index, segment_number)
 }
 
+//TODO: No longer need segment_number.
 fn get_subtitle_segment(
     media_file: &str,
     stream_index: u8,
