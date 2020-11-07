@@ -3,6 +3,7 @@ use std::process::Command;
 use warp::http::header;
 use warp::http::Response;
 
+// Apple recommends 6 seconds.
 const HLS_SEGMENT_DURATION: f32 = 6.0;
 const MPEGTS_HEADER_VALUE: &str = "video/MP2T";
 const AUDIO_AAC_HEADER_VALUE: &str = "audio/aac";
@@ -72,7 +73,11 @@ fn get_audio_segment(
         &format!("{:.4}", HLS_SEGMENT_DURATION),
         "-initial_offset",
         &format!("{:.4}", start_time),
-        "pipe:%04d.ts",
+        // I know the extension should be ".aac". 
+        // But ".aac" does not work.
+        // ffmpeg warns "[mpegts @ 0x7fb08a80d400] frame size not set" when using ".ts" extension
+        // But it is not fatal and ".ts" just works.
+        "pipe:%04d.ts", 
     ];
 
     let output = Command::new("ffmpeg").args(ffmpeg_args).output();

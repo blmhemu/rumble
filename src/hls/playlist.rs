@@ -105,7 +105,7 @@ fn get_res_playlist(
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
     playlist.push_str("#EXT-X-VERSION:4\n");
-    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.6}\n", HLS_SEGMENT_DURATION));
+    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.4}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
     // playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
@@ -121,9 +121,9 @@ fn get_res_playlist(
 
     while leftover > 0 as f32 {
         if leftover > HLS_SEGMENT_DURATION {
-            playlist.push_str(&format!("#EXTINF:{:.6},\n", HLS_SEGMENT_DURATION));
+            playlist.push_str(&format!("#EXTINF:{:.4},\n", HLS_SEGMENT_DURATION));
         } else {
-            playlist.push_str(&format!("#EXTINF:{:.6},\n", leftover));
+            playlist.push_str(&format!("#EXTINF:{:.4},\n", leftover));
         }
         playlist.push_str(&format!(
             "/video/{}/{}/{:04}.ts\n",
@@ -157,7 +157,7 @@ fn get_audio_playlist(
     let mut playlist = String::new();
     playlist.push_str("#EXTM3U\n");
     playlist.push_str("#EXT-X-VERSION:4\n");
-    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.6}\n", HLS_SEGMENT_DURATION));
+    playlist.push_str(&format!("#EXT-X-TARGETDURATION:{:.4}\n", HLS_SEGMENT_DURATION));
     playlist.push_str("#EXT-X-MEDIA-SEQUENCE:0\n");
     playlist.push_str("#EXT-X-PLAYLIST-TYPE:VOD\n");
     playlist.push_str("#EXT-X-ALLOW-CACHE:YES\n");
@@ -173,9 +173,9 @@ fn get_audio_playlist(
 
     while leftover > 0 as f32 {
         if leftover > HLS_SEGMENT_DURATION {
-            playlist.push_str(&format!("#EXTINF:{:.6},\n", HLS_SEGMENT_DURATION));
+            playlist.push_str(&format!("#EXTINF:{:.4},\n", HLS_SEGMENT_DURATION));
         } else {
-            playlist.push_str(&format!("#EXTINF:{:.6},\n", leftover));
+            playlist.push_str(&format!("#EXTINF:{:.4},\n", leftover));
         }
         playlist.push_str(&format!(
             "/audio/{}/{:02}/{:04}.aac\n",
