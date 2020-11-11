@@ -3,7 +3,6 @@ use std::process::Command;
 use warp::http::header;
 use warp::http::Response;
 
-
 // Concurrency : https://stackoverflow.com/questions/64735270/how-to-perform-thread-safe-io-and-caching-to-file-in-rust
 // Apple recommends 6 seconds.
 const HLS_SEGMENT_DURATION: f32 = 6.0;

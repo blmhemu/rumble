@@ -1,10 +1,24 @@
 mod hls;
+mod indexer;
 mod media_info;
 
+use std::collections::HashMap;
+use std::path::Path;
+use std::sync::{Arc, Mutex, RwLock};
 use warp::Filter;
 
 #[tokio::main]
 async fn main() {
+    // We will update this when there is a change.
+    // https://github.com/notify-rs/notify
+    // Hence the use of Arc and RwLock.
+    // TODO: Look into https://github.com/vorner/arc-swap
+    let videos = Arc::new(RwLock::new(HashMap::new()));
+    // let mut videos: Arc::new(HashMap<String, String> = HashMap::new());
+    indexer::get_supported_video_files(videos.clone(), "/Users/hbollamreddi/Movies");
+
+    println!("{:?}", videos);
+
     let debug = false;
     if debug {
         let location = "ldp.mkv";
@@ -36,6 +50,11 @@ async fn main() {
 
     let index = warp::path::end().and(warp::fs::file("./ui/index.html"));
     let js = warp::path("js").and(warp::fs::dir("./ui3/js"));
+    // Get this better
+    let list_videos = warp::path!("list")
+        .and(warp::path::end())
+        .map(move || videos.clone())
+        .and_then(indexer::list_videos_handler);
     let main_playlist = warp::path!("playlist" / String)
         .and(warp::path::end())
         .and_then(hls::playlist::master_playlist_handler);
@@ -59,7 +78,9 @@ async fn main() {
         .and_then(hls::segment::subtitle_segment_handler);
 
     warp::serve(
-        js.or(index)
+        list_videos
+            .or(js)
+            .or(index)
             .or(main_playlist)
             .or(audio_playlist)
             .or(subs_playlist)
