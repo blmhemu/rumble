@@ -17,10 +17,10 @@ async fn main() {
     // let mut videos: Arc::new(HashMap<String, String> = HashMap::new());
     indexer::get_supported_video_files(videos.clone(), "/Users/hbollamreddi/Movies");
 
-    println!("{:?}", videos);
-
     let debug = false;
     if debug {
+        println!("{:?}", videos);
+        
         let location = "ldp.mkv";
 
         let duration = media_info::get_duration(location);
