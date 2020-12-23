@@ -14,8 +14,11 @@ Supports multi subs and multi audio.
 Api design is currently unstable and might change in future.
 
 /playlist -> Gives the m3u8 file (HLS playlist file)
+
 /video -> Gives the .ts segment at requested time / segment number
+
 /audio -> Same as video but for audio
+
 /subs -> Subs are not segmented and are provided as a single file due to low size
 
 # ToDo
