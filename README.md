@@ -3,10 +3,12 @@ Note: This is prerelease software and a few variables may be hardcoded.
 To be fast and powerful media server written in rust.
 
 Inspired by [jellyfin](https://jellyfin.org/), [olaris](https://gitlab.com/olaris/olaris-server) and [gohls](https://github.com/shimberger/gohls)
+
 Jellyfin is a bit resource intensive and seemed slow to run on low power devices. Rust being inherently fast and correct, would run on most low power devices.
 
 # Design
 FFmpeg is heavily used to segment the video stream at required times and is served to the requesting media player.
+
 HLS supported : Player can request for streams at various pre defined resolutions adpatively based on the bandwidth available.
 Supports multi subs and multi audio.
 
